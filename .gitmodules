@@ -1,0 +1,9 @@
+[submodule "reactredux"]
+	path = reactredux
+	url = https://github.com/eranmazuz/HomeAssignmentReactRedux.git
+[submodule "dotnetbackend"]
+	path = dotnetbackend
+	url = https://github.com/eranmazuz/HomeAssignmentDotNet8EntityFramework.git
+[submodule "nodebackend"]
+	path = nodebackend
+	url = https://github.com/eranmazuz/HomeAssignmentNodeExpress.git
