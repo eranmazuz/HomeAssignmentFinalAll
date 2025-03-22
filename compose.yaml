@@ -1,0 +1,80 @@
+services:
+  sqlserver:
+    image: "mcr.microsoft.com/mssql/server:2022-latest"
+    container_name: sqlserver
+    environment:
+      SA_PASSWORD: "[Strong_password]"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    networks:
+      - sql_network
+
+  dotnetbackend:
+    build:
+      context: ./dotnetbackend
+      dockerfile: Dockerfile
+    container_name: dotnetbackend
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://+:5200
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=HomeworkDB;User Id=sa;Password=[Strong_password];TrustServerCertificate=True
+    ports:
+      - "5200:5200"
+    depends_on:
+      - sqlserver
+    networks:
+      - sql_network
+      - dotnet_network
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.1
+    container_name: elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - xpack.security.http.ssl.enabled=false
+    ports:
+      - "9200:9200"
+    networks:
+      - elastic_network
+
+  nodebackend:
+    build:
+      context: ./nodebackend
+      dockerfile: Dockerfile
+    container_name: node_backend
+    environment:
+      - PORT=4455
+      - ELASTICSEARCH_NODE=http://elasticsearch:9200
+    ports:
+      - "4455:4455"
+    depends_on:
+      - elasticsearch
+    networks:
+      - elastic_network
+      - express_network
+
+  reactfrontend:
+    build:
+      context: ./reactredux
+      dockerfile: Dockerfile
+      args:
+        REACT_APP_CATEGORIES_URL: http://localhost:5200/api/Categories
+        REACT_APP_POST_ORDER_URL: http://localhost:4455/api/order
+    container_name: react_frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - nodebackend
+      - dotnetbackend
+    networks:
+      - dotnet_network
+      - express_network
+
+
+networks:
+  sql_network:
+  dotnet_network:
+  elastic_network:
+  express_network:
